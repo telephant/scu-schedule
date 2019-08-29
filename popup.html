@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="/index.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+    .container{
+      width: 200px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    img {
+      width: 80%;
+    }
+
+    #download {
+      margin-top: 20px;
+      padding: 6px 20px;
+      border-radius: 10px;
+    }
+    </style>
   </head>
   <body>
-    <script src="/download.js"></script>
     <div class="container">
+      <div>
+      </div>
+      <img src="./img/logo_3.png" />
       <button id="download">
         导出课表日历
       </button>
     </div>
   </body>
+  <script src="/popup.js"></script>
 </html>

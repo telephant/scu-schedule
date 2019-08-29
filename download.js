@@ -1,4 +1,5 @@
 var domain = 'http://202.115.44.108:81';
+var COUNTDOWN_TIME = 5;
 var TABLE_MAP = [
   'date',
   'week',
@@ -27,34 +28,6 @@ var TIME_MAP = [
   },
 ];
 
-function getScheduleTableDocument() {
-  var mainFrames = document.getElementsByTagName('frame');
-  for (var j = 0; j < mainFrames.length; j++) {
-    if (mainFrames[j].src == 'http://202.115.44.108:81/main.aspx') {
-      var tables = mainFrames[j].contentDocument.getElementsByClassName('templateTable1');
-      return tables[1];
-    }
-  }
-  return null;
-}
-
-function table2Json(table) {
-  var data = [];
-  var trs = table.getElementsByTagName('tr');
-  for (var i = 1; i < trs.length; i++) {
-    var tds = trs[i].getElementsByTagName('td');
-    var item = {};
-    for (var j = 0; j < tds.length; j++) {
-      item[TABLE_MAP[j]] = tds[j].innerHTML;
-    }
-    
-    if (Object.keys(item).length) {
-      data.push(item);
-    }
-  }
-  return data;
-}
-
 function getStartEndTimeFromTime(time, date) {
   var newDate = date.replace(/\\/g, '-');
   var found = TIME_MAP.find(function (ele) {
@@ -66,32 +39,63 @@ function getStartEndTimeFromTime(time, date) {
   };
 }
 
+// transform table dom data to json data.
+function table2Json(table) {
+  var data = [];
+  var trs = table.getElementsByTagName('tr');
+  for (var i = 1; i < trs.length; i++) {
+    var tds = trs[i].getElementsByTagName('td');
+    var item = {};
+    for (var j = 0; j < tds.length; j++) {
+      item[TABLE_MAP[j]] = tds[j].innerHTML;
+    }
+
+    if (Object.keys(item).length) {
+      data.push(item);
+    }
+  }
+  return data;
+}
+
+function getScheduleTableDocument() {
+  var mainFrames = document.getElementsByTagName('frame');
+  for (var j = 0; j < mainFrames.length; j++) {
+    if (mainFrames[j].src == 'http://202.115.44.108:81/main.aspx') {
+      var tables = mainFrames[j].contentDocument.getElementsByClassName('templateTable1');
+      if (tables[1]) {
+        return tables[1];
+      }
+    }
+  }
+  return null;
+}
+
 function makeICS(data) {
   cal = ics();
   for (var item of data) {
     var found = getStartEndTimeFromTime(item.time, item.date);
-    cal.addEvent(item.course, item.class, '四川大学商学院', found.start, found.end);
+    var roomStr = '四川大学商学院' + item.room;
+    cal.addEvent(item.course, item.class, roomStr, found.start, found.end);
   }
   var s = cal.download('schedule');
 }
 
-function main () {
-  var frames = document.getElementsByTagName('frame');
-  for (var i = 0; i < frames.length; i++) {
-    if (frames[i].src == 'http://202.115.44.108:81/Leftmenu.aspx') {
-      frames[i].contentWindow.addEventListener('click', function () {
-        var res = setTimeout(function () {
-          var table = getScheduleTableDocument();
-          if (!table) {
-            return false;
-          }
-
-          var data = table2Json(table);
-          makeICS(data);
-        }, 1000);
-      }, true);
-    }
+function getScheduleTableData() {
+  var table = getScheduleTableDocument();
+  if (!table) {
+    return null;
   }
+  var json = table2Json(table);
+  makeICS(json);
+  return true;
 }
 
-main();
+chrome.runtime.onMessage.addListener(
+  function (request, sender, sendResponse) {
+    if (request.cmd == "GET_TABLE") {
+      var res = getScheduleTableData();
+      sendResponse(res);
+    }
+    sendResponse('听不懂你在说什么');
+  }
+);

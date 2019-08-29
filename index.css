@@ -1,8 +1,13 @@
 .container{
   width: 200px;
   height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 #downloadBtn {
-  width: 100px;
+  padding: 6px 20px;
+  border-radius: 10px;
 }

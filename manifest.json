@@ -3,9 +3,15 @@
   "name": "SCU-SCHEMEDUAL",
   "version": "2.0",
   "description": "Download student class table to iclendar.",
+  "permissions": [
+    "tabs",
+    "http://202.115.44.108:81/index_main.aspx",
+    "https://202.115.44.108:81/index_main.aspx"
+  ],
   "browser_action": {
     "default_title": "scu-mba-schedule",
-    "default_icon": "img/icon.jpeg"
+    "default_icon": "img/icon.png",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
