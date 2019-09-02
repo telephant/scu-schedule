@@ -1,17 +1,33 @@
 
+
+function appendLoadingToDom(qrcodeUl) {
+  document.getElementById('qrcode_container').innerHTML = '<img src="./img/loading.gif" />';
+}
+
+function appendIcsQrcodeToDom(qrcodeUrl) {
+  document.getElementById('qrcode_container').innerHTML = '<img src="' + qrcodeUrl + '" />';
+}
+
 function sendMessageToContentScript(message, callback) {
   chrome.tabs.getSelected(null, function (tab) {
     chrome.tabs.sendMessage(tab.id, message, callback);
   });
 }
 
+// 监听来自content-script的消息
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.cmd === 'QRCODE'){
+    appendIcsQrcodeToDom(request.value);
+  }
+});
+
 document.getElementById('download').addEventListener('click', function(){
   sendMessageToContentScript({ cmd: 'GET_TABLE', value: '获取表格' }, function (response) {
     if (!response) {
-      alert('未检测到可导出课表嘛，请打开 「学生栏目 - 校历课表」');
+      alert('未检测到可导出课表，请刷新，并打开 「学生栏目 - 校历课表」');
       return false;
     }
-    alert('导出课表成功!');
+    appendLoadingToDom();
   });
 });
 

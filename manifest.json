@@ -6,6 +6,7 @@
   "permissions": [
     "tabs",
     "webRequest",
+    "https://kuanduhome.com/api/timetables/ics",
     "webRequestBlocking",
     "http://202.115.44.108:81/index_main.aspx",
     "https://202.115.44.108:81/index_main.aspx"

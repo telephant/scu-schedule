@@ -1,3 +1,6 @@
+var xhr;
+var NOTIFY_MINUTES = 30;
+var serverHttp = 'https://kuanduhome.com/api/timetables/ics';
 var domain = 'http://202.115.44.108:81';
 var COUNTDOWN_TIME = 5;
 var TABLE_MAP = [
@@ -28,14 +31,48 @@ var TIME_MAP = [
   },
 ];
 
+Date.prototype.Format = function (fmt) {
+  var o = {
+    "M+": this.getMonth() + 1, //月份         
+    "d+": this.getDate(), //日         
+    "h+": this.getHours() % 12 == 0 ? 12 : this.getHours() % 12, //小时         
+    "H+": this.getHours(), //小时         
+    "m+": this.getMinutes(), //分         
+    "s+": this.getSeconds(), //秒         
+    "q+": Math.floor((this.getMonth() + 3) / 3), //季度         
+    "S": this.getMilliseconds() //毫秒         
+  };
+  var week = {
+    "0": "/u65e5",
+    "1": "/u4e00",
+    "2": "/u4e8c",
+    "3": "/u4e09",
+    "4": "/u56db",
+    "5": "/u4e94",
+    "6": "/u516d"
+  };
+  if (/(y+)/.test(fmt)) {
+    fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+  }
+  if (/(E+)/.test(fmt)) {
+    fmt = fmt.replace(RegExp.$1, ((RegExp.$1.length > 1) ? (RegExp.$1.length > 2 ? "/u661f/u671f" : "/u5468") : "") + week[this.getDay() + ""]);
+  }
+  for (var k in o) {
+    if (new RegExp("(" + k + ")").test(fmt)) {
+      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    }
+  }
+  return fmt;
+}       
+
 function getStartEndTimeFromTime(time, date) {
   var newDate = date.replace(/\\/g, '-');
   var found = TIME_MAP.find(function (ele) {
     return ele.text === time;
   });
   return {
-    start: new Date(newDate + found.start),
-    end: new Date(newDate + found.end),
+    start: (new Date(newDate + found.start)).Format("yyyy-MM-dd HH:mm:ss"),
+    end: (new Date(newDate + found.end)).Format("yyyy-MM-dd HH:mm:ss"),
   };
 }
 
@@ -57,6 +94,7 @@ function table2Json(table) {
   return data;
 }
 
+// get schedule table data by dom.
 function getScheduleTableDocument() {
   var mainFrames = document.getElementsByTagName('frame');
   for (var j = 0; j < mainFrames.length; j++) {
@@ -70,15 +108,41 @@ function getScheduleTableDocument() {
   return null;
 }
 
-
-function makeICS(data) {
-  cal = ics();
-  for (var item of data) {
-    var found = getStartEndTimeFromTime(item.time, item.date);
-    var roomStr = '四川大学商学院' + item.room;
-    cal.addEvent(item.course, item.class, roomStr, found.start, found.end);
+// request for getting ics url.
+function getIcsUrl(reqData) {
+  var data = '';
+  // POST
+  if (window.XMLHttpRequest) { // Mozilla, Safari...
+    xhr = new XMLHttpRequest();
+  } else if (window.ActiveXObject) { // IE
+    try {
+      xhr = new ActiveXObject('Msxml2.XMLHTTP');
+    } catch (e) {
+      try {
+        xhr = new ActiveXObject('Microsoft.XMLHTTP');
+      } catch (e) { }
+    }
   }
-  var s = cal.download('schedule');
+  if (xhr) {
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          var res = xhr.responseText;
+          if (res) {
+            sendMsgToPop({ cmd: 'QRCODE', value: res });
+            return true;
+          }
+        }
+        alert('服务器睡着了，请联系开发人员...：）');
+      }
+      return false;
+    };
+    xhr.open('POST', serverHttp);
+    // 以json的形式传递数据.
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(reqData));
+  }
+  return data;
 }
 
 function formatTableJson(data) {
@@ -88,10 +152,11 @@ function formatTableJson(data) {
     var roomStr = '四川大学商学院' + item.room;
     res.push({
       course: item.course,
-      class: item.class,
-      room: roomStr,
-      start: found.start,
-      end: found.end,
+      className: item.class,
+      classRoom: roomStr,
+      startTime: found.start,
+      endTime: found.end,
+      notifyMinutes: NOTIFY_MINUTES,
     })
   }
   return res;
@@ -100,11 +165,13 @@ function formatTableJson(data) {
 function getScheduleTableData() {
   var table = getScheduleTableDocument();
   if (!table) {
-    return null;
+    return false;
   }
   var json = table2Json(table);
-  makeICS(json);
-  // console.log(formatTableJson(json));
+  if (!json || json.length === 0) {
+    return false;
+  }
+  getIcsUrl(formatTableJson(json));
   return true;
 }
 
@@ -118,18 +185,7 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-
-
-[
-  {
-    "class": "2018级金融2班",
-    "course": "投资学",
-    "date": "2019\9\28",
-    "class": "2018级金融2班",
-    "room": "周六商学院206 商学院周日113",
-    "sequence": "1-4",
-    "time": "上午",
-    "week": "5",
-    "weekdate": "星期6",
-  }
-]
+// send message or data to pop js.
+function sendMsgToPop(data) {
+  chrome.runtime.sendMessage(data);
+}

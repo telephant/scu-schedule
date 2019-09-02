@@ -2,13 +2,13 @@
 <html>
   <head>
     <style type="text/css">
-    .container{
+    #container{
       width: 200px;
-      height: 200px;
+      height: 300px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      padding: 10px 5px;
     }
 
     img {
@@ -19,17 +19,28 @@
       margin-top: 20px;
       padding: 6px 20px;
       border-radius: 10px;
+      background: white;
+      box-shadow: none;
+      border: 1px solid #aaa;
     }
+
+    #qrcode_container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
     </style>
   </head>
   <body>
-    <div class="container">
-      <div>
-      </div>
+    <div id="container">
       <img src="./img/logo_3.png" />
       <button id="download">
         导出课表日历
       </button>
+      <div id="qrcode_container"></div>
     </div>
   </body>
   <script src="/popup.js"></script>
