@@ -117,19 +117,3 @@ chrome.runtime.onMessage.addListener(
     sendResponse('听不懂你在说什么');
   }
 );
-
-
-
-[
-  {
-    "class": "2018级金融2班",
-    "course": "投资学",
-    "date": "2019\9\28",
-    "class": "2018级金融2班",
-    "room": "周六商学院206 商学院周日113",
-    "sequence": "1-4",
-    "time": "上午",
-    "week": "5",
-    "weekdate": "星期6",
-  }
-]
