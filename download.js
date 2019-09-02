@@ -70,6 +70,7 @@ function getScheduleTableDocument() {
   return null;
 }
 
+
 function makeICS(data) {
   cal = ics();
   for (var item of data) {
@@ -80,6 +81,22 @@ function makeICS(data) {
   var s = cal.download('schedule');
 }
 
+function formatTableJson(data) {
+  var res = [];
+  for (var item of data) {
+    var found = getStartEndTimeFromTime(item.time, item.date);
+    var roomStr = '四川大学商学院' + item.room;
+    res.push({
+      course: item.course,
+      class: item.class,
+      room: roomStr,
+      start: found.start,
+      end: found.end,
+    })
+  }
+  return res;
+}
+
 function getScheduleTableData() {
   var table = getScheduleTableDocument();
   if (!table) {
@@ -87,6 +104,7 @@ function getScheduleTableData() {
   }
   var json = table2Json(table);
   makeICS(json);
+  // console.log(formatTableJson(json));
   return true;
 }
 
@@ -99,3 +117,19 @@ chrome.runtime.onMessage.addListener(
     sendResponse('听不懂你在说什么');
   }
 );
+
+
+
+[
+  {
+    "class": "2018级金融2班",
+    "course": "投资学",
+    "date": "2019\9\28",
+    "class": "2018级金融2班",
+    "room": "周六商学院206 商学院周日113",
+    "sequence": "1-4",
+    "time": "上午",
+    "week": "5",
+    "weekdate": "星期6",
+  }
+]

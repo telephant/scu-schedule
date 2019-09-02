@@ -5,6 +5,8 @@
   "description": "Download student class table to iclendar.",
   "permissions": [
     "tabs",
+    "webRequest",
+    "webRequestBlocking",
     "http://202.115.44.108:81/index_main.aspx",
     "https://202.115.44.108:81/index_main.aspx"
   ],
