@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "SCU-SCHEMEDUAL",
+  "name": "SCU-SCHEDULE",
   "version": "2.0",
   "description": "Download student class table to iclendar.",
   "permissions": [
